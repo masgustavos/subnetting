@@ -33,7 +33,7 @@ The agent finds your tab, pulls `/llms.txt`, agrees the plan with you, builds it
 
 The agent works on your real tab and, on a cloud network, your real account. The skill makes it stop three times:
 
-1. **Design**: it confirms the CIDR plan, names and sizes with you before the first structural change.
+1. **Design**: it drafts the full CIDR plan, then asks the open decisions as choices with a recommended option (Claude Code's question dialog, where available) before the first structural change.
 2. **Destructive operations**: it asks before each delete, wipe, mode switch or root CIDR change, because undo does not survive a refresh and cloud networks sync live.
 3. **Verification**: it audits every block against the agreed plan before saying it is done.
 

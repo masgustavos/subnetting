@@ -33,14 +33,21 @@ Citations: see "Sources" at the bottom.
 
 ## AWS discovery questions
 
-Ask these in **one consolidated turn** when the design gate fires. Skip
-any the user already answered. Pair each unknown with the recommended
-default + a one-line reason, so the user can accept-with-default by
-saying "yes" to all.
+These are the decisions behind a design, not a questionnaire to read
+out. When Gate 1 fires, first draft the full plan with every default
+below applied, then ask only what is still open, in **one turn**, as
+choices: the default first and marked recommended with its one-line
+reason, the realistic alternatives after it, each as a concrete value
+("3 AZs", "2 AZs", "4 AZs"; `10.0.0.0/16`, `10.1.0.0/16`). The quoted
+wording under each question is the intent, not a script. Skip anything
+the request or the canvas already answers.
 
 Q0 (naming) and Q8 (VPC differentiation) are presentation/structure
-questions; Q1–Q7 are sizing/topology questions. Ask them all in the
-same turn.
+questions; Q1–Q7 are sizing/topology questions. When the question tool
+takes fewer questions than are open, ask in this order and apply the
+defaults for the rest, listing them in the draft: CIDR base (Q2 and
+the CIDR base rules), AZ count (Q3), sizing profile and tier mix (Q4,
+Q5), naming (Q0).
 
 ### 0. Naming convention
 
@@ -62,10 +69,9 @@ user discovers their canvas is a soup of `Subnet-1`s.
 env-prefix for workload VPCs, flat for function VPCs (inspection,
 shared-services, ingress, egress).
 
-**How to ask:** use your harness's structured-question tool when it
-has one, otherwise a numbered question, and show side-by-side preview
-ASCII trees of two naming variants — it lets the user pick by
-seeing the result, not parsing the rules.
+**How to ask:** one option per naming variant, each with a preview
+ASCII tree of the result where the question tool supports previews —
+it lets the user pick by seeing the result, not parsing the rules.
 
 **Block-creation note:** plan the names into the build recipe, not as
 an afterthought. `/llms.txt` shows which creation methods take a name
@@ -334,6 +340,8 @@ N times).
 ## CIDR base recommendation rules
 
 When the user gives no CIDR base, ask before picking — never assume.
+Offer the first fitting candidate below as the recommended option and
+the next ones as alternatives, each with the assumption it rests on.
 Recommended starting points, in order:
 
 1. `**10.0.0.0/16` from `10.0.0.0/8`\*\* — only if the user has confirmed
