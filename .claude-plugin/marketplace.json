@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "subnetting",
+  "description": "Marketplace for the subnetting plugin, which drives subnetting.dev, the keyboard-first IP network planner, from Claude Code.",
+  "owner": {
+    "name": "Gustavo Stein",
+    "email": "contato@masgustavos.com"
+  },
+  "plugins": [
+    {
+      "name": "subnetting",
+      "source": "./",
+      "description": "Drive subnetting.dev in your own signed-in Chrome tab. Ships the subnetting-dev skill and bundles chrome-devtools-mcp.",
+      "homepage": "https://subnetting.dev",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": [
+        "subnetting",
+        "networking",
+        "ipam",
+        "vpc",
+        "aws",
+        "cidr",
+        "chrome-devtools-mcp",
+        "browser-automation"
+      ]
+    }
+  ]
+}

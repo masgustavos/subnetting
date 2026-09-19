@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "subnetting",
+  "description": "Drive subnetting.dev, the keyboard-first IP network planner, in your own signed-in Chrome tab. Ships the subnetting-dev skill (window.subnet facade, design, destructive-operation and verification gates, AWS design guidance) and bundles chrome-devtools-mcp to reach the tab.",
+  "author": {
+    "name": "Gustavo Stein",
+    "email": "contato@masgustavos.com"
+  },
+  "homepage": "https://subnetting.dev",
+  "license": "MIT",
+  "keywords": [
+    "subnetting",
+    "networking",
+    "ipam",
+    "vpc",
+    "aws",
+    "cidr",
+    "chrome-devtools-mcp",
+    "browser-automation"
+  ],
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--autoConnect"
+      ]
+    }
+  }
+}
