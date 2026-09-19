@@ -3,7 +3,7 @@
   "name": "subnetting",
   "description": "Marketplace for the subnetting plugin, which drives subnetting.dev, the keyboard-first IP network planner, from Claude Code.",
   "owner": {
-    "name": "Gustavo Stein",
+    "name": "Gustavo Stein (@masgustavos)",
     "email": "contato@masgustavos.com"
   },
   "plugins": [
