@@ -7,6 +7,14 @@
 > `https://subnetting.dev/llms.txt`. When the two disagree, the app rules
 > bind; this file gives you the _content_ to fit into them.
 
+> **What the planner cannot hold:** a block has exactly one CIDR and
+> the root must be RFC 1918, so a secondary CIDR (`100.64.0.0/16` for
+> TGW attachments or EKS pods) cannot be drawn. Still recommend it
+> where this file says so; record it in the written plan and leave it
+> off the canvas. The canvas shape, and the Gate 3 count, is then the
+> catalog row minus its intra tier. AZ names are not a choice either:
+> the app derives `<region>a/b/c`.
+
 > **Design-gate location:** the gate that triggers this reference is
 > Gate 1 in [SKILL.md](../SKILL.md). Read that first for _when_
 > and _how_ to ask. This file is _what_ to ask and _what defaults to
@@ -51,8 +59,7 @@ Q5), naming (Q0).
 
 ### 0. Naming convention
 
-> "AZ names — `us-east-1a/b/c` (AWS standard) or `az-a/b/c`
-> (region-agnostic)? Subnet names — `<tier>-<letter>` (e.g.,
+> "Subnet names — `<tier>-<letter>` (e.g.,
 > `private-a`) or `<tier>-<region-shortcode><letter>` (e.g.,
 > `private-use1a`)? VPC names — env-prefix for workload VPCs
 > (`dev-eks-vpc`, `qa-app-vpc`) or flat for function VPCs
@@ -88,6 +95,11 @@ opportunistic; multi-account requires an IPAM-style allocation plan.
 
 **Default:** Single VPC unless the user mentions accounts, regions,
 peering, TGW, on-prem, or Direct Connect.
+
+**Multi-region or DR:** when the user mentions either, ask in the same
+question which accounts get a DR region and which (sandbox, dev) do
+not. A DR region mirrors the primary's VPC shapes in its own
+non-overlapping range.
 
 ### 2. Adjacent CIDRs to avoid
 
@@ -167,7 +179,7 @@ routable IPs across every AZ × every VPC. The AWS Prescriptive Guidance
 pattern uses a non-routable secondary CIDR with TGW blackhole routes.
 
 **Default:** Yes — `/28` per AZ from `100.64.0.0/16` (or another agreed
-non-routable secondary range).
+non-routable secondary range), recorded in the plan, not on the canvas.
 
 ### 8. VPC differentiation
 
@@ -272,10 +284,9 @@ Headroom: ~50% total — split between per-AZ slack (~6 KB inside each
 AZ's `/18`) and network-wide tail (`10.0.192.0/18`).
 
 **Drop the `intra` row** when Q1 = single VPC (no TGW, no VPC
-endpoints). Per-AZ packing then becomes private `/19` + public `/22`
-
-- database `/24` = ~9.25 KB used, ~7 KB per-AZ reserved. Total
-  headroom rises to ~52%.
+endpoints). Per-AZ packing then becomes private `/19`, public `/22`
+and database `/24`: ~9.25 KB used, ~7 KB per-AZ reserved. Total
+headroom rises to ~52%.
 
 **Build sequence** (per AZ, after the AZ container exists):
 
@@ -300,13 +311,13 @@ allocation** is consistent (every account gets a `/16` from a planned
 `/8`); the shape of **each VPC inside an account** is _not_ one-size-
 fits-all — see the typed VPC catalog below.
 
-| Layer                    | CIDR                                         | Per AZ                                              | Notes                                                       |
-| ------------------------ | -------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------- |
-| Org `/8` allocation plan | `10.0.0.0/8` segmented per environment       | —                                                   | Recommend AWS IPAM.                                         |
-| Per-account VPC          | `/16` from the account's reserved slot       | —                                                   | Never reuse the same `/16` across accounts.                 |
-| Per-VPC shape            | See **Typed VPC catalog** below              | —                                                   | Each VPC type gets its own per-AZ shape — propose per type. |
-| Intra (TGW attach)       | `100.64.0.0/16` secondary CIDR, `/28` per AZ | `100.64.0.0/28`, `100.64.0.16/28`, `100.64.0.32/28` | Non-routable; TGW blackhole route.                          |
-| Reserved                 | 50% of the account `/16`                     | —                                                   | For new VPCs, secondary CIDRs, EKS pod CIDRs.               |
+| Layer                    | CIDR                                                                                                          | Per AZ                                              | Notes                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------- |
+| Org `/8` allocation plan | `10.0.0.0/8` segmented per environment                                                                        | —                                                   | Recommend AWS IPAM.                                         |
+| Per-account VPC          | `/16` from the account's reserved slot (the planner's account block is larger: it holds the regions and VPCs) | —                                                   | Never reuse the same `/16` across accounts.                 |
+| Per-VPC shape            | See **Typed VPC catalog** below                                                                               | —                                                   | Each VPC type gets its own per-AZ shape — propose per type. |
+| Intra (TGW attach)       | `100.64.0.0/16` secondary CIDR, `/28` per AZ                                                                  | `100.64.0.0/28`, `100.64.0.16/28`, `100.64.0.32/28` | Non-routable; TGW blackhole route.                          |
+| Reserved                 | 50% of the account `/16`                                                                                      | —                                                   | For new VPCs, secondary CIDRs, EKS pod CIDRs.               |
 
 #### Typed VPC catalog
 
@@ -335,7 +346,10 @@ type. Build one VPC of each type fully, verify it matches its catalog
 row, then `copy` + `pasteAsSibling` to replicate within its
 account/region — _but only after the template is verified_ (see
 Gate 3 in [SKILL.md](../SKILL.md); replication amplifies template bugs
-N times).
+N times). For a DR region or more accounts, follow the multi-account
+replication recipe in the AWS mode section of `/llms.txt`: every step
+is an additive paste, so no Gate 2 call is needed. Size-descending
+applies at every level: create larger accounts before smaller ones.
 
 ## CIDR base recommendation rules
 
@@ -344,17 +358,17 @@ Offer the first fitting candidate below as the recommended option and
 the next ones as alternatives, each with the assumption it rests on.
 Recommended starting points, in order:
 
-1. `**10.0.0.0/16` from `10.0.0.0/8`\*\* — only if the user has confirmed
+1. **`10.0.0.0/16` from `10.0.0.0/8`** — only if the user has confirmed
    no other AWS estate uses `10.0.0.0/16` and there is no on-prem
    conflict. Cite this assumption in the proposal.
 2. **Next free `/16` in their `10.0.0.0/8` plan** — if the user
    indicated existing AWS VPCs. Ask which `/16` slots are taken; pick
    the next free one (`10.1.0.0/16`, `10.2.0.0/16`, etc.).
-3. `**172.16.0.0/12`\*\* — when the user has on-prem in `10.0.0.0/8` or
+3. **`172.16.0.0/12`** — when the user has on-prem in `10.0.0.0/8` or
    has run out of `10.x.0.0/16` slots. Less common; equally valid.
-4. `**192.168.0.0/16**` — labs / single-VPC experiments only. Cramped
+4. **`192.168.0.0/16`** — labs / single-VPC experiments only. Cramped
    for production estates that may grow.
-5. `**100.64.0.0/10**` — never the primary VPC CIDR. Reserved for
+5. **`100.64.0.0/10`** — never the primary VPC CIDR. Reserved for
    non-routable secondary CIDRs (TGW attachments, EKS pod CIDR, GWLBe
    subnets) where blackhole routing keeps it from leaking.
 

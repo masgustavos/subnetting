@@ -41,7 +41,7 @@ When no such tool is available to you, give the user these steps and stop; do no
 | Call the facade             | `evaluate_script`               | `function` is a string holding a function declaration; use the async shape from [subnetting-app.md](subnetting-app.md) |
 | Find and pick the tab       | `list_pages` then `select_page` | Match the target origin; prefer a network view over the docs                                                           |
 | Open a fresh tab            | `new_page`                      | Only when no tab on the origin exists                                                                                  |
-| Fetch the contract          | your HTTP tool                  | Or `evaluate_script` with `async () => (await fetch('/llms.txt')).text()`                                              |
+| Fetch the contract          | a shell: `curl -s -o <file>`    | No shell: `evaluate_script` fetching `/llms.txt` with its save-to-file parameter (the saved text is JSON-escaped)      |
 | Navigate within the app     | `navigate_page`                 | Element uids invalidate afterwards                                                                                     |
 | Wait for a view to settle   | `wait_for`                      | Pass the texts you expect to see                                                                                       |
 | Read the accessibility tree | `take_snapshot`                 | One `uid` per element; uids invalidate on navigation or a structural DOM change                                        |
@@ -55,6 +55,9 @@ When no such tool is available to you, give the user these steps and stop; do no
 
 ## Eval pitfalls
 
+- If the harness lists these tools by name without their schemas (deferred tools), load the schemas through its tool search before the first call.
+- With two copies of the server configured, run `list_pages` on each and stay on the one that shows the user's tab.
+- Read-only evaluations can turn off the wait-for-stable-DOM parameter; keep it on after mutations.
 - `evaluate_script` takes a function, not a bare expression. `window.subnet.getNetwork()` on its own fails; `() => JSON.stringify(window.subnet.getNetwork())` works.
 - Return the awaited, stringified result from inside the function. Returning the promise of a facade call without awaiting it can serialize as `undefined`.
 - When saving a snapshot or screenshot to a file, the path has to sit inside the workspace; paths outside it are rejected. Delete the file afterwards.
@@ -77,7 +80,7 @@ Point the server at it with `--browserUrl http://127.0.0.1:9222` in place of `--
 
 ## Troubleshooting
 
-- `list_pages` fails to connect: Chrome is older than 144, the remote-debugging toggle is off, or the Allow prompt was dismissed. Fix, restart Chrome if the toggle changed, and retry.
+- `list_pages` fails to connect: Chrome is not running, is older than 144, the remote-debugging toggle is off, or the Allow prompt was dismissed. Fix, restart Chrome if the toggle changed, and retry.
 - "Target closed": Chrome closed or crashed mid-session. Reopen it on the target origin and repeat the call.
 - No tab on the origin is listed: the tab lives in a different Chrome instance or profile than the one the server attached to.
 - `npx` cannot find the package: check `node --version` and rerun the add command.

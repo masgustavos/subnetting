@@ -1,13 +1,13 @@
 # Transport: agent-browser CLI
 
-[agent-browser](https://github.com/vercel-labs/agent-browser) is a shell CLI that drives its own headless Chrome. That browser starts signed out with empty storage, which suits UI QA and scratch networks on `/`; it does not see the user's tab or account. Tested with 0.26.0. Run `agent-browser --help` for the full command list; this file holds only what driving subnetting.dev needs.
+[agent-browser](https://github.com/vercel-labs/agent-browser) is a shell CLI that drives its own headless Chrome. That browser starts signed out with empty storage, which suits UI QA and throwaway networks on `/`; it does not see the user's tab or account. Tested with 0.26.0. Run `agent-browser --help` for the full command list; this file holds only what driving subnetting.dev needs.
 
 ## Bootstrap
 
 ```bash
 agent-browser open https://subnetting.dev && agent-browser wait --load networkidle
 agent-browser set viewport 1920 1080   # at least 1024 px wide, or the compact layout renders
-curl -s https://subnetting.dev/llms.txt   # the contract; read it before choosing methods
+curl -s -o llms.txt https://subnetting.dev/llms.txt   # the contract; read the whole file once
 agent-browser eval 'JSON.stringify(window.subnet.getNetwork())'
 ```
 
@@ -49,4 +49,4 @@ Why the heredoc: the shell rewrites inner double quotes, backticks, `$()` and `!
 
 ## Cleaning up
 
-The headless browser keeps its storage between commands in a session, so the scratch network on `/` survives until the session ends. Undo or delete test mutations when the task was QA rather than a build the user asked for.
+The headless browser keeps its storage between commands in a session, so the local network on `/` survives until the session ends. Undo or delete test mutations when the task was QA rather than a build the user asked for.

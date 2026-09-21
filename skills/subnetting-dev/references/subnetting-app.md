@@ -103,7 +103,7 @@ If the canvas is blank, confirm there are blocks via `listBlocks`. The canvas ne
 
 The route decides whether a mutation is local or real, on a dev server as much as on production:
 
-- `/` is the scratch network, persisted only to the driving browser's storage. `/shared/<slug>` is read-only.
+- `/` is the local network, persisted only to the driving browser's storage. `/shared/<slug>` is read-only.
 - `/network/<id>` is a cloud-saved network. When the browser is signed in, mutations sync to the user's account in real time, with no sandbox. Gate 2 in [SKILL.md](../SKILL.md) lists the operations that need a confirmation there.
 
 ## Common pitfalls
@@ -111,6 +111,7 @@ The route decides whether a mutation is local or real, on a dev server as much a
 - Stale block id after `deleteBlock`: the id is gone, so re-list blocks before continuing.
 - `split` with a count that is not a power of two fails. See `/llms.txt` -> "Subnetting fundamentals" for the rule and the `addChild` loop fallback.
 - Element references from a snapshot invalidate on navigation and on any structural DOM change; snapshot again after opening a page or after an action that changes it.
+- The user can edit the same tab between your calls. Check a mutation inside the same evaluation (re-read the parent's children), and treat an unexpected selection, clipboard or history as a reason to stop and ask.
 - `copy`, `pasteAsSibling` and `pasteOverChildren` share a single in-memory clipboard slot. Two interleaved flows overwrite each other.
 - `pasteOverChildren` replaces the target's children; `pasteAsSibling` adds next to them. Picking the wrong one is destructive (Gate 2).
 
